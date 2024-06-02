@@ -1,0 +1,7 @@
+numpy
+torch
+torch_geometric
+lightning
+matplotlib
+notebook
+
