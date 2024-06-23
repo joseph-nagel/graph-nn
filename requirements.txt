@@ -2,6 +2,7 @@ numpy
 torch
 torch_geometric
 lightning
+networkx
 matplotlib
 notebook
 
