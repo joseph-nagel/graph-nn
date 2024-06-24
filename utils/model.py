@@ -4,9 +4,9 @@ import torch.nn as nn
 from torch_geometric.nn import GCNConv
 
 
-class GCNClassifier(nn.Module):
+class GCNNodeClassifier(nn.Module):
     '''
-    Graph convolutional network for node-level classification.
+    Graph convolutional network for node classification.
 
     Parameters
     ----------
@@ -19,7 +19,7 @@ class GCNClassifier(nn.Module):
 
     def __init__(self,
                  num_channels,
-                 num_classes):
+                 num_classes=None):
 
         super().__init__()
 
@@ -36,17 +36,25 @@ class GCNClassifier(nn.Module):
         self.gconv_layers = nn.ModuleList(gconv_layers)
 
         # create linear classifier
-        self.linear = nn.Linear(num_channels[-1], num_classes)
+        if num_classes is not None:
+            self.linear = nn.Linear(num_channels[-1], num_classes)
+        else:
+            self.linear = None
 
     def forward(self, x, edge_index):
 
         # run GCN layers
-        for gconv in self.gconv_layers:
+        for idx, gconv in enumerate(self.gconv_layers):
+            is_not_last = (idx < len(self.gconv_layers) - 1)
+
             x = gconv(x, edge_index)
-            x = nn.functional.relu(x)
+
+            if is_not_last or self.linear is not None:
+                x = nn.functional.relu(x)
 
         # run linear classifier
-        x = self.linear(x)
+        if self.linear is not None:
+            x = self.linear(x)
 
         return x
 
