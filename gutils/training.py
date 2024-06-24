@@ -4,17 +4,20 @@ import torch
 
 
 @torch.no_grad()
-def test_loss(data, model, criterion):
+def test_loss(model,
+              criterion,
+              data,
+              mask=None):
     '''Compute loss.'''
 
     model.eval()
 
     y_pred = model(data.x, data.edge_index)
 
-    loss = criterion(
-        y_pred[data.test_mask],
-        data.y[data.test_mask]
-    )
+    if mask is None:
+        loss = criterion(y_pred, data.y)
+    else:
+        loss = criterion(y_pred[mask], data.y[mask])
 
     return loss
 
@@ -25,11 +28,12 @@ def accuracy(preds, targets):
     return (preds == targets).sum() / len(preds)
 
 
-def train(data,
-          model,
+def train(model,
           criterion,
           optimizer,
           num_epochs,
+          data,
+          mask=None,
           log_every=1):
     '''Train model.'''
 
@@ -45,10 +49,10 @@ def train(data,
 
         y_pred = model(data.x, data.edge_index)
 
-        loss = criterion(
-            y_pred[data.train_mask],
-            data.y[data.train_mask]
-        )
+        if mask is None:
+            loss = criterion(y_pred, data.y)
+        else:
+            loss = criterion(y_pred[mask], data.y[mask])
 
         loss.backward()
         optimizer.step()
@@ -60,10 +64,10 @@ def train(data,
             # val_loss = test_loss(data, model, criterion)
 
             # calculate accuracy
-            acc = accuracy(
-                preds=y_pred[data.train_mask].argmax(dim=1),
-                targets=data.y[data.train_mask]
-            )
+            if mask is None:
+                acc = accuracy(y_pred.argmax(dim=1), data.y)
+            else:
+                acc = accuracy(y_pred[mask].argmax(dim=1), data.y[mask])
 
             # print summary
             print('Epoch: {:d}, loss: {:.2e}, acc.: {:.2f}'. \
