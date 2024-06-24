@@ -17,9 +17,7 @@ class GCNNodeClassifier(nn.Module):
 
     '''
 
-    def __init__(self,
-                 num_channels,
-                 num_classes=None):
+    def __init__(self, num_channels, num_classes=None):
 
         super().__init__()
 
