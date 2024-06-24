@@ -6,5 +6,5 @@ from . import training
 
 from .model import GCNNodeClassifier
 
-from .training import train_step, train
+from .training import train
 

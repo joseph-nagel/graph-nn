@@ -19,27 +19,10 @@ def test_loss(data, model, criterion):
     return loss
 
 
-def train_step(data,
-               model,
-               criterion,
-               optimizer):
-    '''Perform a training step.'''
-
-    model.train()
-
-    optimizer.zero_grad()
-
-    y_pred = model(data.x, data.edge_index)
-
-    loss = criterion(
-        y_pred[data.train_mask],
-        data.y[data.train_mask]
-    )
-
-    loss.backward()
-    optimizer.step()
-
-    return loss
+@torch.no_grad()
+def accuracy(preds, targets):
+    '''Calculate accuracy.'''
+    return (preds == targets).sum() / len(preds)
 
 
 def train(data,
@@ -50,24 +33,39 @@ def train(data,
           log_every=1):
     '''Train model.'''
 
-    # val_loss = test_loss(model, criterion, val_loader)
+    # val_loss = test_loss(data, model, criterion)
     # print('Before training, val. loss: {:.2e}'.format(val_loss))
 
     for epoch_idx in range(num_epochs):
 
         # perform train step
-        loss = train_step(
-            data=data,
-            model=model,
-            criterion=criterion,
-            optimizer=optimizer
+        model.train()
+
+        optimizer.zero_grad()
+
+        y_pred = model(data.x, data.edge_index)
+
+        loss = criterion(
+            y_pred[data.train_mask],
+            data.y[data.train_mask]
         )
 
-        # compute val. error
+        loss.backward()
+        optimizer.step()
+
+        # monitor performance
         if (epoch_idx + 1) % log_every == 0:
-            # val_loss = test_loss(model, criterion, val_loader)
-            # print('Epoch: {:d}, batch loss: {:.2e}, val. loss: {:.2e}'. \
-            #       format(epoch_idx + 1, loss.detach().item(), val_loss))
-            print('Epoch: {:d}, batch loss: {:.2e}'. \
-                  format(epoch_idx + 1, loss.detach().item()))
+
+            # compute val. error
+            # val_loss = test_loss(data, model, criterion)
+
+            # calculate accuracy
+            acc = accuracy(
+                preds=y_pred[data.train_mask].argmax(dim=1),
+                targets=data.y[data.train_mask]
+            )
+
+            # print summary
+            print('Epoch: {:d}, loss: {:.2e}, acc.: {:.2f}'. \
+                  format(epoch_idx + 1, loss.detach().item(), acc.detach().item()))
 
