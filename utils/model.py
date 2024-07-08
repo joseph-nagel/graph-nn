@@ -48,7 +48,7 @@ class GCNNodeClassifier(nn.Module):
             x = gconv(x, edge_index)
 
             if is_not_last or self.linear is not None:
-                x = nn.functional.relu(x)
+                x = nn.functional.leaky_relu(x)
 
         # run linear classifier
         if self.linear is not None:

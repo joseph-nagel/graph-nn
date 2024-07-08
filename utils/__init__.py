@@ -1,9 +1,10 @@
 '''Graph utilities.'''
 
-from . import model
-from . import training
-from . import vis
-
+from . import (
+    model,
+    training,
+    vis
+)
 
 from .model import GCNNodeClassifier
 
