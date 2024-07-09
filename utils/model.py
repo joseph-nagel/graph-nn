@@ -3,7 +3,7 @@
 from numbers import Number
 
 import torch.nn as nn
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GCNConv, global_mean_pool
 
 
 class GCNBlock(nn.Module):
@@ -108,7 +108,7 @@ class DenseBlock(nn.Sequential):
 
 class GCNModel(nn.Module):
     '''
-    GCN-based model for node-level prediction.
+    GCN-based model for node-level or graph-level prediction.
 
     Parameters
     ----------
@@ -116,12 +116,16 @@ class GCNModel(nn.Module):
         Channel numbers for GCN layers.
     num_features : int or list
         Feature numbers for linear layers.
+    graph_level : bool
+        Determines whether the model predicts
+        node-level or graph-level properties.
 
     '''
 
     def __init__(self,
                  num_channels=None,
-                 num_features=None):
+                 num_features=None,
+                 graph_level=False):
 
         super().__init__()
 
@@ -147,6 +151,9 @@ class GCNModel(nn.Module):
         else:
             raise TypeError(f'Invalid number of channels type: {type(num_channels)}')
 
+        # set prediction level (node or graph)
+        self.graph_level = graph_level
+
         # create dense block
         if num_features is None:
             self.dense_layers = None
@@ -166,11 +173,15 @@ class GCNModel(nn.Module):
         else:
             raise TypeError(f'Invalid number of features type: {type(num_features)}')
 
-    def forward(self, x, edge_index):
+    def forward(self, x, edge_index, batch=None):
 
         # run GCN layers
         if self.gconv_layers is not None:
             x = self.gconv_layers(x, edge_index)
+
+        # average over nodes
+        if self.graph_level:
+            x = global_mean_pool(x, batch=batch)
 
         # run dense layers
         if self.dense_layers is not None:
