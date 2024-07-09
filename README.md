@@ -9,5 +9,5 @@ The library [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/late
 
 - [Node classification](notebooks/node_classif.ipynb)
 
-- [Graph classification](notebooks/graph_classif.ipynb)
+- [Graph-level regression](notebooks/graph_regress.ipynb)
 
