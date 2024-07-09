@@ -7,5 +7,5 @@ The library [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/late
 
 - [Graph data](notebooks/data.ipynb)
 
-- [Graph convolutional network](notebooks/gcn.ipynb)
+- [Node classification](notebooks/node_classif.ipynb)
 

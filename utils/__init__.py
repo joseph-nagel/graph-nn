@@ -6,7 +6,11 @@ from . import (
     vis
 )
 
-from .model import GCNNodeClassifier
+from .model import (
+    GCNBlock,
+    DenseBlock,
+    GCNModel
+)
 
 from .training import train
 
