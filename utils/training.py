@@ -108,7 +108,6 @@ def train_node_level(data,
                 val_losses[epoch_idx + 1] = val_loss
                 val_accs[epoch_idx + 1] = val_acc
 
-            # print summary
             print(
                 'Epoch: {:d}, train loss: {:.2e}, train acc.: {:.2f}, val. loss: {:.2e}, val. acc.: {:.2f}'.format(
                     epoch_idx + 1, loss.detach().item(), train_acc.item(), val_loss.item(), val_acc.item()
@@ -191,8 +190,11 @@ def train_graph_level(model,
         model.train()
 
         # loop over batches
-        for batch in train_loader:
+        batch_losses = torch.zeros(len(train_loader))
 
+        for batch_idx, batch in enumerate(train_loader):
+
+            # perform train step
             optimizer.zero_grad()
 
             y_pred = model(
@@ -206,23 +208,28 @@ def train_graph_level(model,
             loss.backward()
             optimizer.step()
 
+            # calculate running loss
+            batch_losses[batch_idx] = loss.detach()
+
+            if (batch_idx + 1) < 3:
+                running_loss = batch_losses[batch_idx]
+            else:
+                running_loss = sum(batch_losses[-3:]) / 3
+
         # monitor performance
         if (epoch_idx + 1) % log_every == 0:
-
             val_loss = _test_loss(model, criterion, val_loader)
-
-            train_losses[epoch_idx + 1] = loss.detach()
-
             val_losses[epoch_idx + 1] = val_loss
 
-            # print summary
+            train_losses[epoch_idx + 1] = running_loss
+
             print(
-                'Epoch: {:d}, batch loss: {:.2e}, val. loss: {:.2e}'.format(
-                    epoch_idx + 1, loss.detach().item(),val_loss.item()
+                'Epoch: {:d}, running loss: {:.2e}, val. loss: {:.2e}'.format(
+                    epoch_idx + 1, running_loss.item(), val_loss.item()
                 )
             )
 
-    # return losses and accuracies
+    # return losses
     history = {
         'num_epochs': num_epochs,
         'train_loss': train_losses,
