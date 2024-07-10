@@ -3,6 +3,15 @@
 import torch
 
 
+def _device(device=None):
+    '''Determine device.'''
+    if device is None:
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    else:
+        device = device
+    return device
+
+
 @torch.no_grad()
 def _accuracy(preds, targets):
     '''Calculate accuracy.'''
@@ -14,8 +23,12 @@ def train_node_level(data,
                      criterion,
                      optimizer,
                      num_epochs,
-                     log_every=1):
+                     log_every=1,
+                     device=None):
     '''Train node-level prediction model.'''
+
+    device = _device(device)
+    data = data.to(device)
 
     train_losses = torch.zeros(num_epochs + 1, dtype=data.x.dtype)
     train_accs = torch.zeros(num_epochs + 1, dtype=data.x.dtype)
@@ -49,15 +62,15 @@ def train_node_level(data,
             data.y[data.val_mask]
         )
 
-    train_losses[0] = loss
-    train_accs[0] = train_acc
+    train_losses[0] = loss.cpu()
+    train_accs[0] = train_acc.cpu()
 
-    val_losses[0] = val_loss
-    val_accs[0] = val_acc
+    val_losses[0] = val_loss.cpu()
+    val_accs[0] = val_acc.cpu()
 
     print(
         'Initially, train loss: {:.2e}, train acc.: {:.2f}, val. loss: {:.2e}, val. acc.: {:.2f}'.format(
-            loss.item(), train_acc.item(), val_loss.item(), val_acc.item()
+            loss.cpu().item(), train_acc.cpu().item(), val_loss.cpu().item(), val_acc.cpu().item()
         )
     )
 
@@ -102,15 +115,16 @@ def train_node_level(data,
                     data.y[data.val_mask]
                 )
 
-                train_losses[epoch_idx + 1] = loss.detach()
-                train_accs[epoch_idx + 1] = train_acc
+                train_losses[epoch_idx + 1] = loss.detach().cpu()
+                train_accs[epoch_idx + 1] = train_acc.cpu()
 
-                val_losses[epoch_idx + 1] = val_loss
-                val_accs[epoch_idx + 1] = val_acc
+                val_losses[epoch_idx + 1] = val_loss.cpu()
+                val_accs[epoch_idx + 1] = val_acc.cpu()
 
             print(
                 'Epoch: {:d}, train loss: {:.2e}, train acc.: {:.2f}, val. loss: {:.2e}, val. acc.: {:.2f}'.format(
-                    epoch_idx + 1, loss.detach().item(), train_acc.item(), val_loss.item(), val_acc.item()
+                    epoch_idx + 1, loss.detach().cpu().item(), train_acc.cpu().item(),
+                    val_loss.cpu().item(), val_acc.cpu().item()
                 )
             )
 
@@ -127,7 +141,10 @@ def train_node_level(data,
 
 
 @torch.no_grad()
-def _test_loss(model, criterion, data_loader):
+def _test_loss(model,
+               criterion,
+               data_loader,
+               device=None):
     '''Compute the loss over a dataloader.'''
 
     model.eval()
@@ -136,6 +153,8 @@ def _test_loss(model, criterion, data_loader):
     batch_losses = torch.zeros(len(data_loader))
 
     for idx, batch in enumerate(data_loader):
+        batch = batch.to(device)
+
         y_pred = model(
             batch.x,
             batch.edge_index,
@@ -143,7 +162,7 @@ def _test_loss(model, criterion, data_loader):
         )
 
         batch_loss = criterion(y_pred, batch.y)
-        batch_losses[idx] = batch_loss
+        batch_losses[idx] = batch_loss.cpu()
 
     # reduce batch losses
     if criterion.reduction == 'mean':
@@ -162,8 +181,11 @@ def train_graph_level(model,
                       num_epochs,
                       train_loader,
                       val_loader=None,
-                      log_every=1):
+                      log_every=1,
+                      device=None):
     '''Train graph-level prediction model.'''
+
+    device = _device(device)
 
     train_losses = torch.zeros(num_epochs + 1)
 
@@ -171,11 +193,11 @@ def train_graph_level(model,
         val_losses = torch.zeros(num_epochs + 1)
 
     # compute initial losses
-    loss = _test_loss(model, criterion, train_loader)
+    loss = _test_loss(model, criterion, train_loader, device=device)
     train_losses[0] = loss
 
     if val_loader is not None:
-        val_loss = _test_loss(model, criterion, val_loader)
+        val_loss = _test_loss(model, criterion, val_loader, device=device)
         val_losses[0] = val_loss
 
     print(
@@ -195,6 +217,8 @@ def train_graph_level(model,
         for batch_idx, batch in enumerate(train_loader):
 
             # perform train step
+            batch = batch.to(device)
+
             optimizer.zero_grad()
 
             y_pred = model(
@@ -209,7 +233,7 @@ def train_graph_level(model,
             optimizer.step()
 
             # calculate running loss
-            batch_losses[batch_idx] = loss.detach()
+            batch_losses[batch_idx] = loss.detach().cpu()
 
             if (batch_idx + 1) < 3:
                 running_loss = batch_losses[batch_idx]
@@ -218,7 +242,7 @@ def train_graph_level(model,
 
         # monitor performance
         if (epoch_idx + 1) % log_every == 0:
-            val_loss = _test_loss(model, criterion, val_loader)
+            val_loss = _test_loss(model, criterion, val_loader, device=device)
             val_losses[epoch_idx + 1] = val_loss
 
             train_losses[epoch_idx + 1] = running_loss
