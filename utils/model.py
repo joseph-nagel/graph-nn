@@ -15,7 +15,7 @@ class GCNBlock(nn.Module):
     num_channels : list
         Channel numbers of the GCN layers.
     activate_last : bool
-        Determines whether an the output of the
+        Determines whether the output of the
         last layer gets nonlinearly activated.
 
     '''
@@ -75,7 +75,7 @@ class DenseBlock(nn.Sequential):
     num_features : list
         Feature numbers of the linear layers.
     activate_last : bool
-        Determines whether an the output of the
+        Determines whether the output of the
         last layer gets nonlinearly activated.
 
     '''
@@ -119,6 +119,16 @@ class GCNModel(nn.Module):
     graph_level : bool
         Determines whether the model predicts
         node-level or graph-level properties.
+
+    Notes
+    -----
+    The main model input are (num_nodes, num_features)-shaped tensors.
+    For a node-level prediction model, the output shape is (num_nodes, num_targets).
+    The output of a graph-level model is usually (batch_size, num_targets)-shaped.
+
+    In case of a graph-level model, the input is usually the node feature matrix
+    of a larger graph that contains multiple isolated subgraphs (batch items).
+    Averaging over nodes is employed in order to appropriately reduce the output.
 
     '''
 
@@ -179,9 +189,18 @@ class GCNModel(nn.Module):
         if self.gconv_layers is not None:
             x = self.gconv_layers(x, edge_index)
 
-        # average over nodes
+        # average over nodes (for graph-level predictions)
         if self.graph_level:
-            x = global_mean_pool(x, batch=batch)
+            if batch is not None:
+                # A batch is a huge graph that consists of multiple isolated subgraphs.
+                # In order to average over the nodes, one therefore needs to identify
+                # all the nodes that belong to the same batched subgraph.
+                # This is done by a "batch"-tensor that assigns each node to an item.
+                x = global_mean_pool(x, batch=batch)
+            else:
+                raise TypeError('Nodes have to be assigned to batch items (indices missing)')
+        elif batch is not None:
+            raise TypeError('Nodes should not be assigned to batch items (indices passed)')
 
         # run dense layers
         if self.dense_layers is not None:
