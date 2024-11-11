@@ -11,13 +11,15 @@ def _accuracy(preds, targets):
     return (preds == targets).sum() / len(preds)
 
 
-def train_node_level(data,
-                     model,
-                     criterion,
-                     optimizer,
-                     num_epochs,
-                     log_every=1,
-                     device=None):
+def train_node_level(
+    data,
+    model,
+    criterion,
+    optimizer,
+    num_epochs,
+    log_every=1,
+    device=None
+):
     '''Train node-level prediction model.'''
 
     device = _device(device)

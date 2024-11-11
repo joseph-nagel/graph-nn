@@ -1,7 +1,8 @@
 '''Models.'''
 
-from numbers import Number
+from collections.abc import Sequence
 
+import torch
 import torch.nn as nn
 from torch_geometric.nn import global_mean_pool
 
@@ -14,9 +15,9 @@ class GCNModel(nn.Module):
 
     Parameters
     ----------
-    num_channels : int or list
+    num_channels : int, list or None
         Channel numbers for GCN layers.
-    num_features : int or list
+    num_features : int, list or None
         Feature numbers for linear layers.
     graph_level : bool
         Determines whether the model predicts
@@ -34,10 +35,12 @@ class GCNModel(nn.Module):
 
     '''
 
-    def __init__(self,
-                 num_channels=None,
-                 num_features=None,
-                 graph_level=False):
+    def __init__(
+        self,
+        num_channels: int | Sequence[int] | None = None,
+        num_features: int | Sequence[int] | None = None,
+        graph_level: bool = False
+    ):
 
         super().__init__()
 
@@ -45,11 +48,11 @@ class GCNModel(nn.Module):
         if num_channels is None:
             self.gconv_layers = None
 
-        elif isinstance(num_channels, Number):
+        elif isinstance(num_channels, int):
             self.gconv_layers = None
             num_channels = [num_channels]
 
-        elif isinstance(num_channels, (list, tuple)):
+        elif isinstance(num_channels, Sequence):
             if num_features is not None:
                 activate_last = True
             else:
@@ -70,13 +73,13 @@ class GCNModel(nn.Module):
         if num_features is None:
             self.dense_layers = None
 
-        elif isinstance(num_features, Number):
-            if isinstance(num_channels, (list, tuple)):
+        elif isinstance(num_features, int):
+            if isinstance(num_channels, Sequence):
                 self.dense_layers = nn.Linear(num_channels[-1], num_features)
             else:
                 raise TypeError(f'Incompatible number of channels type: {type(num_channels)}')
 
-        elif isinstance(num_features, (list, tuple)):
+        elif isinstance(num_features, Sequence):
             self.dense_layers = DenseBlock(
                 num_features=[num_channels[-1]] + num_features,
                 activate_last=False
@@ -85,7 +88,12 @@ class GCNModel(nn.Module):
         else:
             raise TypeError(f'Invalid number of features type: {type(num_features)}')
 
-    def forward(self, x, edge_index, batch=None):
+    def forward(
+        self,
+        x: torch.Tensor,
+        edge_index: torch.Tensor,
+        batch: torch.Tensor | None = None
+    ) -> torch.Tensor:
 
         # run GCN layers
         if self.gconv_layers is not None:
@@ -101,6 +109,7 @@ class GCNModel(nn.Module):
                 x = global_mean_pool(x, batch=batch)
             else:
                 raise TypeError('Nodes have to be assigned to batch items (indices missing)')
+
         elif batch is not None:
             raise TypeError('Nodes should not be assigned to batch items (indices passed)')
 

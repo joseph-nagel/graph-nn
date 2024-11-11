@@ -1,5 +1,8 @@
 '''GCN layers.'''
 
+from collections.abc import Sequence
+
+import torch
 import torch.nn as nn
 from torch_geometric.nn import GCNConv
 
@@ -18,7 +21,11 @@ class GCNBlock(nn.Module):
 
     '''
 
-    def __init__(self, num_channels, activate_last=True):
+    def __init__(
+        self,
+        num_channels: Sequence[int],
+        activate_last: bool = True
+    ) -> None:
 
         super().__init__()
 
@@ -29,8 +36,8 @@ class GCNBlock(nn.Module):
         # assemble GCN layers
         num_layers = len(num_channels) - 1
 
-        gconv_layers = []
-        activ_layers = []
+        gconv_layers = [] # type: list[nn.Module]
+        activ_layers = [] # type: list[nn.Module]
 
         for idx, (in_channels, out_channels) in enumerate(zip(num_channels[:-1], num_channels[1:])):
             is_not_last = (idx < num_layers - 1)
@@ -50,7 +57,11 @@ class GCNBlock(nn.Module):
         self.gconv_layers = nn.ModuleList(gconv_layers)
         self.activ_layers = nn.ModuleList(activ_layers)
 
-    def forward(self, x, edge_index):
+    def forward(
+        self,
+        x: torch.Tensor,
+        edge_index: torch.Tensor
+    ) -> torch.Tensor:
 
         for gconv, activ in zip(self.gconv_layers, self.activ_layers):
 

@@ -6,10 +6,12 @@ from .utils import _device
 
 
 @torch.no_grad()
-def _test_loss(model,
-               criterion,
-               data_loader,
-               device=None):
+def _test_loss(
+    model,
+    criterion,
+    data_loader,
+    device=None
+):
     '''Compute the loss over a dataloader.'''
 
     model.eval()
@@ -40,14 +42,16 @@ def _test_loss(model,
     return test_loss
 
 
-def train_graph_level(model,
-                      criterion,
-                      optimizer,
-                      num_epochs,
-                      train_loader,
-                      val_loader=None,
-                      log_every=1,
-                      device=None):
+def train_graph_level(
+    model,
+    criterion,
+    optimizer,
+    num_epochs,
+    train_loader,
+    val_loader=None,
+    log_every=1,
+    device=None
+):
     '''Train graph-level prediction model.'''
 
     device = _device(device)
