@@ -100,7 +100,7 @@ def train_node_level(
                     data.y[data.train_mask]
                 )
 
-                y_pred = model(data.x, data.edge_index) # preds may differ in eval mode
+                y_pred = model(data.x, data.edge_index)  # preds may differ in eval mode
 
                 val_loss = criterion(
                     y_pred[data.val_mask],

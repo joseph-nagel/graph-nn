@@ -36,8 +36,8 @@ class GCNBlock(nn.Module):
         # assemble GCN layers
         num_layers = len(num_channels) - 1
 
-        gconv_layers = [] # type: list[nn.Module]
-        activ_layers = [] # type: list[nn.Module]
+        gconv_layers = []  # type: list[nn.Module]
+        activ_layers = []  # type: list[nn.Module]
 
         for idx, (in_channels, out_channels) in enumerate(zip(num_channels[:-1], num_channels[1:])):
             is_not_last = (idx < num_layers - 1)
@@ -50,7 +50,7 @@ class GCNBlock(nn.Module):
             if is_not_last or activate_last:
                 activ = nn.LeakyReLU()
             else:
-                activ = None # nn.ModuleList seems to accept None entries
+                activ = None  # nn.ModuleList seems to accept None entries
 
             activ_layers.append(activ)
 
