@@ -135,5 +135,3 @@ def train_node_level(
     }
 
     return history
-
-

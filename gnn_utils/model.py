@@ -118,4 +118,3 @@ class GCNModel(nn.Module):
             x = self.dense_layers(x)
 
         return x
-

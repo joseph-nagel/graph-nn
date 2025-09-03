@@ -130,4 +130,3 @@ def train_graph_level(
     }
 
     return history
-

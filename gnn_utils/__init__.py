@@ -15,4 +15,3 @@ from .model import (
 from .training import train_node_level, train_graph_level
 
 from .vis import plot_training_curves
-

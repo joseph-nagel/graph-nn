@@ -12,4 +12,3 @@ def _device(device=None):
         device = device
 
     return device
-

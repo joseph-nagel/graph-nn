@@ -73,4 +73,3 @@ class GCNBlock(nn.Module):
                 x = activ(x)
 
         return x
-

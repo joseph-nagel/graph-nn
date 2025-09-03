@@ -7,8 +7,5 @@ The library [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/late
 ## Notebooks
 
 - [Graph data](notebooks/data.ipynb)
-
 - [Node classification](notebooks/node_classif.ipynb)
-
 - [Graph-level regression](notebooks/graph_regress.ipynb)
-

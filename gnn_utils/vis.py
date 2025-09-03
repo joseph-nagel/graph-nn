@@ -56,4 +56,3 @@ def plot_training_curves(history, figsize=(9, 3.5)):
     fig.tight_layout()
 
     return fig, axes
-
