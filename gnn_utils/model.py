@@ -41,7 +41,6 @@ class GCNModel(nn.Module):
         num_features: int | Sequence[int] | None = None,
         graph_level: bool = False
     ):
-
         super().__init__()
 
         # create GCN block

@@ -50,7 +50,7 @@ def plot_training_curves(history, figsize=(9, 3.5)):
     for ax in axes:
         ax.set_xlim((0, history['num_epochs']))
         ax.legend()
-        ax.grid(visible=True, which='both', color='lightgray', linestyle='-')
+        ax.grid(color='lightgray', linestyle='-')
         ax.set_axisbelow(True)
 
     fig.tight_layout()
