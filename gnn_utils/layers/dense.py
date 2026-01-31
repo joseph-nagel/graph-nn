@@ -23,7 +23,7 @@ class DenseBlock(nn.Sequential):
         self,
         num_features: Sequence[int],
         activate_last: bool = True
-    ) -> None:
+    ):
 
         # check number of features
         if len(num_features) < 2:

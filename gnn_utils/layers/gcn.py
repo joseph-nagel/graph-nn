@@ -25,8 +25,7 @@ class GCNBlock(nn.Module):
         self,
         num_channels: Sequence[int],
         activate_last: bool = True
-    ) -> None:
-
+    ):
         super().__init__()
 
         # check number of channels
